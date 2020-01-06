@@ -2,4 +2,4 @@ mod hex;
 mod hex_field;
 mod unit_block;
 pub use crate::hex::Hex;
-pub use crate::hex_field::HexField;
+pub use crate::hex_field::{HexField, Config};
