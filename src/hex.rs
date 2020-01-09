@@ -31,6 +31,14 @@ impl Hex {
         Hex { center, size }
     }
 
+    pub fn center(&self) -> (f32, f32) {
+        self.center
+    }
+
+    pub fn size(&self) -> (f32, f32) {
+        self.size
+    }
+
     fn unit_size(&self) -> (f32, f32) {
         (self.size.0 * 0.75f32, self.size.1 * 0.5f32)
     }
