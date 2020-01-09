@@ -2,7 +2,7 @@ use crate::hex::Hex;
 use crate::hex_field::HexField;
 use rand::prelude::*;
 use std::collections::HashSet;
-use trees::{tr, Node, Tree};
+pub use trees::{tr, Node, Tree};
 
 #[allow(dead_code)]
 pub fn generate(
