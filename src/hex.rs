@@ -12,15 +12,8 @@ impl PartialEq for Hex {
         if self.size != other.size {
             return false;
         }
-        let center = (
-            (self.center.0 / self.size.0).floor() as i32,
-            (self.center.1 / self.size.1).floor() as i32,
-        );
-        let other_center = (
-            (other.center.0 / other.size.0).floor() as i32,
-            (other.center.1 / other.size.1).floor() as i32,
-        );
-        center == other_center
+
+        self.center_in_units() == other.center_in_units()
     }
 }
 
@@ -28,11 +21,7 @@ impl Eq for Hex {}
 
 impl Hash for Hex {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        let center = (
-            (self.center.0 / self.size.0).floor() as i32,
-            (self.center.1 / self.size.1).floor() as i32,
-        );
-        center.hash(state);
+        self.center_in_units().hash(state);
     }
 }
 
@@ -40,6 +29,18 @@ impl Hex {
     pub fn new(center: (f32, f32), size: (f32, f32)) -> Self {
         UnitBlock::at(0f32, 0f32);
         Hex { center, size }
+    }
+
+    fn unit_size(&self) -> (f32, f32) {
+        (self.size.0 * 0.75f32, self.size.1 * 0.5f32)
+    }
+
+    fn center_in_units(&self) -> (i32, i32) {
+        let unit_size = self.unit_size();
+        (
+            (self.center.0 / unit_size.0).floor() as i32,
+            (self.center.1 / unit_size.1).floor() as i32,
+        )
     }
 
     pub fn top_hex(&self) -> Self {

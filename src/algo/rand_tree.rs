@@ -21,14 +21,12 @@ pub fn generate(
     let mut rng = StdRng::seed_from_u64(seed);
     let mut tree: Tree<Hex> = tr(start_hex.clone());
     let mut to_process: Vec<&mut Node<Hex>> = Vec::with_capacity(count);
-    println!("Start: nodes: {};", tree.node_count());
-
     to_process.push(tree.root_mut());
 
     let mut in_tree: HashSet<Hex> = HashSet::with_capacity(count * 2);
     in_tree.insert(start_hex);
-    let mut forbidden: HashSet<Hex> = HashSet::with_capacity(count * 2);
 
+    let mut forbidden: HashSet<Hex> = HashSet::with_capacity(count * 2);
 
     loop {
         let node = to_process.swap_remove(rng.gen_range(0, to_process.len()));
@@ -36,13 +34,10 @@ pub fn generate(
         let free = free_neighbors(&neighbors, &in_tree, &forbidden);
         let (mut conn, forb) = forbid_some_neighbors(free, &mut rng, forbid_prob);
 
-        println!("Before: In tree: {}; Conn: {};", in_tree.len(), conn.len());
         let exceed_hex_count = (in_tree.len() + conn.len()) as i64 - count as i64;
         if exceed_hex_count > 0 {
             conn = conn[0..conn.len() - exceed_hex_count as usize].to_vec();
         }
-        
-        println!("After: In tree: {}; Conn: {};", in_tree.len(), conn.len());
 
         let conn_nodes = conn.iter().map(|n| tr(n.clone())).collect::<Vec<_>>();
         node.extend(conn_nodes);
@@ -99,7 +94,7 @@ mod tests {
     use super::generate;
     use crate::hex::Hex;
     use crate::hex_field::{Config, HexField};
-    use trees::{Tree};
+    use trees::Tree;
 
     fn default_hex_field() -> HexField {
         let width = 19f32;
@@ -114,14 +109,16 @@ mod tests {
         })
     }
 
-    fn default_tree() -> Tree<Hex> {
+    fn default_tree(seed: u64) -> Tree<Hex> {
         let hf = default_hex_field();
-        generate(&hf, 128, (-30f32, -30f32), 0.5f32, 55u64)
+        generate(&hf, 128, (-30f32, -30f32), 0.5f32, seed)
     }
 
     #[test]
     fn hex_count() {
-        let tree = default_tree();
-        assert_eq!(tree.node_count(), 128);
+        for i in 0..50 {
+            let tree = default_tree(i);
+            assert_eq!(tree.node_count(), 128);
+        }
     }
 }
