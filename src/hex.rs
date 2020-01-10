@@ -151,6 +151,17 @@ impl Hex {
         let y = self.center.1;
         (x, y)
     }
+
+    pub fn points(&self) -> [(f32, f32); 6] {
+        [
+            self.top_left(),
+            self.top_right(),
+            self.right(),
+            self.bot_right(),
+            self.bot_left(),
+            self.left(),
+        ]
+    }
 }
 
 #[cfg(test)]
