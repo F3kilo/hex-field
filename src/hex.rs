@@ -162,14 +162,6 @@ impl Hex {
             self.left(),
         ]
     }
-
-    pub fn inner_radius(&self) -> f32 {
-        self.size.1 / 2f32
-    }
-
-    pub fn outer_radius(&self) -> f32 {
-        self.size.0 / 2f32
-    }
 }
 
 #[cfg(test)]
