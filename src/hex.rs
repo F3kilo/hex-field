@@ -148,20 +148,11 @@ impl Hash for Hex {
 
 impl Hex {
     pub fn new(center: Vec2, size: Vec2) -> Self {
-        UnitBlock::at(0f32, 0f32);
         Hex { center, size }
     }
 
-    pub fn from_coords(center: (f32, f32), size: (f32, f32)) -> Self {
-        UnitBlock::at(0f32, 0f32);
-        Hex {
-            center: Vec2::from(center),
-            size: Vec2::from(size),
-        }
-    }
-
     pub fn center(&self) -> Vec2 {
-        self.center.into()
+        self.center
     }
 
     pub fn size(&self) -> Vec2 {
@@ -169,7 +160,6 @@ impl Hex {
     }
 
     fn unit_size(&self) -> Vec2 {
-        // (self.size.0 * 0.75f32, self.size.1 * 0.5f32)
         self.size * Vec2::new(0.75f32, 0.5f32)
     }
 
