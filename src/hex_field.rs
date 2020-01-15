@@ -34,7 +34,7 @@ impl HexField {
         let p = self.to_local_coords(p);
         let unit_block = UnitBlock::at(p);
         let central = unit_block.central();
-        let in_left = unit_block.point_in_left_part(&p);
+        let in_left = unit_block.point_in_left_part(p);
         match (central, in_left) {
             (true, true) => self.to_global_coords(unit_block.origin()),
             (true, false) => self.to_global_coords(unit_block.right_block().top_block().origin()),

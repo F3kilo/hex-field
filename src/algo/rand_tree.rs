@@ -48,6 +48,14 @@ impl<R: Rng> RandHexTree<R> {
         hex
     }
 
+    pub fn add_hexes(&mut self, count: usize) -> Vec<Hex> {
+        let mut hexes = Vec::with_capacity(count);
+        for _ in 0..count {
+            hexes.push(self.add_hex());
+        }
+        hexes
+    }
+
     fn hex_to_process(&mut self) -> (Hex, Option<Hex>) {
         let rand_index = self.rng.gen_range(0, self.to_process.len());
         self.to_process.swap_remove(rand_index)
@@ -55,7 +63,7 @@ impl<R: Rng> RandHexTree<R> {
 
     fn assert_forb_prob(forb_prob: f64) {
         match forb_prob {
-            fb if 0.0f64 <= fb && fb < 0.9f64 => return,
+            fb if 0.0f64 <= fb && fb < 0.9f64 => (),
             _ => panic!("Forbidden probability (forb_prob) must be in range: [0, 0.9)"),
         }
     }
@@ -85,9 +93,10 @@ impl<R: Rng> RandHexTree<R> {
             }
 
             let make_forb = self.rng.gen_bool(self.forb_prob);
-            match make_forb {
-                true => forb.push(n),
-                false => free.push(n),
+            if make_forb {
+                forb.push(n);
+            } else {
+                free.push(n);
             }
         }
 
@@ -99,132 +108,33 @@ impl<R: Rng> RandHexTree<R> {
         mut free: Vec<Hex>,
         mut forb: Vec<Hex>,
     ) -> (Vec<Hex>, Vec<Hex>) {
-        if free.is_empty() {
-            if !forb.is_empty() {
-                let forb_index = self.rng.gen_range(0, forb.len());
-                free.push(forb.swap_remove(forb_index));
-            }
+        if free.is_empty() && !forb.is_empty() {
+            let forb_index = self.rng.gen_range(0, forb.len());
+            free.push(forb.swap_remove(forb_index));
         }
 
         (free, forb)
     }
 }
 
-// #[allow(dead_code)]
-// pub fn generate(
-//     hex_field: &HexField,
-//     count: usize,
-//     start_point: (f32, f32),
-//     forbid_prob: f32,
-//     seed: u64,
-// ) -> Tree<Hex> {
-//     if count == 0 {
-//         panic!("can't create empty tree");
-//     }
+#[cfg(test)]
+mod tests {
+    use super::RandHexTree;
+    use crate::hex::Hex;
+    use glam::Vec2;
+    use rand::prelude::*;
 
-//     let start_hex_center = hex_field.hex_center_by_containing_point(start_point.0, start_point.1);
-//     let start_hex = Hex::new(start_hex_center, hex_field.hex_size());
-//     let mut rng = StdRng::seed_from_u64(seed);
-//     let mut tree: Tree<Hex> = tr(start_hex.clone());
-//     let mut to_process: Vec<&mut Node<Hex>> = Vec::with_capacity(count);
-//     to_process.push(tree.root_mut());
+    fn default_tree(seed: u64) -> RandHexTree<StdRng> {
+        let h = Hex::new(Vec2::new(20f32, 20f32), Vec2::new(20f32, 20f32));
+        RandHexTree::with_capacity(h, 0.5f64, StdRng::seed_from_u64(seed), 200)
+    }
 
-//     let mut in_tree: HashSet<Hex> = HashSet::with_capacity(count * 2);
-//     in_tree.insert(start_hex);
-
-//     let mut forbidden: HashSet<Hex> = HashSet::with_capacity(count * 2);
-
-//     loop {
-//         let node = to_process.swap_remove(rng.gen_range(0, to_process.len()));
-//         let neighbors = node.data.neighbors();
-//         let free = free_neighbors(&neighbors, &in_tree, &forbidden);
-//         let (mut conn, forb) = forbid_some_neighbors(free, &mut rng, forbid_prob);
-
-//         let exceed_hex_count = (in_tree.len() + conn.len()) as i64 - count as i64;
-//         if exceed_hex_count > 0 {
-//             conn = conn[0..conn.len() - exceed_hex_count as usize].to_vec();
-//         }
-
-//         let conn_nodes = conn.iter().map(|n| tr(n.clone())).collect::<Vec<_>>();
-//         node.extend(conn_nodes);
-//         forbidden.extend(forb);
-//         in_tree.extend(conn);
-
-//         if in_tree.len() == count {
-//             break;
-//         }
-
-//         to_process.extend(node.iter_mut());
-//     }
-
-//     tree
-// }
-
-// fn free_neighbors(neighbors: &[Hex], in_tree: &HashSet<Hex>, forbidden: &HashSet<Hex>) -> Vec<Hex> {
-//     neighbors
-//         .iter()
-//         .filter(|n| !in_tree.contains(n) && !forbidden.contains(n))
-//         .cloned()
-//         .collect()
-// }
-
-// fn forbid_some_neighbors<T: RngCore>(
-//     neighbors: Vec<Hex>,
-//     rng: &mut T,
-//     forbid_prob: f32,
-// ) -> (Vec<Hex>, Vec<Hex>) {
-//     if neighbors.is_empty() {
-//         return (Vec::new(), Vec::new());
-//     }
-
-//     let mut keep = Vec::with_capacity(neighbors.len());
-//     let mut forb = Vec::with_capacity(neighbors.len());
-//     for n in neighbors {
-//         let r: f32 = rng.gen();
-//         match r {
-//             x if x > forbid_prob => keep.push(n),
-//             _ => forb.push(n),
-//         }
-//     }
-
-//     if keep.is_empty() {
-//         let forb_index = rng.gen_range(0, forb.len());
-//         keep.push(forb.swap_remove(forb_index));
-//     }
-
-//     (keep, forb)
-// }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::generate;
-//     use crate::hex::Hex;
-//     use crate::hex_field::{Config, HexField};
-//     use trees::Tree;
-
-//     fn default_hex_field() -> HexField {
-//         let width = 19f32;
-//         let height = 17f32;
-//         let offset_x = width / 2f32;
-//         let offset_y = height / 2f32;
-//         HexField::new(Config {
-//             width,
-//             height,
-//             offset_x,
-//             offset_y,
-//         })
-//     }
-
-//     fn default_tree(seed: u64) -> Tree<Hex> {
-//         let hf = default_hex_field();
-//         generate(&hf, 128, (-30f32, -30f32), 0.5f32, seed)
-//     }
-
-//     #[test]
-//     fn hex_count() {
-//         for i in 0..50 {
-//             let tree = default_tree(i);
-//             assert_eq!(tree.node_count(), 128);
-//         }
-//     }
-// }
+    #[test]
+    fn hex_count() {
+        for i in 1 as usize..2 as usize {
+            let mut tree = default_tree(i as u64);
+            tree.add_hexes(i);
+            assert_eq!(tree.tree().len(), i);
+        }
+    }
+}

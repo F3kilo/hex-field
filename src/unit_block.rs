@@ -25,12 +25,12 @@ impl UnitBlock {
         }
     }
 
-    pub fn left_block(&self) -> Self {
-        UnitBlock {
-            x: self.x - 1,
-            y: self.y,
-        }
-    }
+    // pub fn left_block(&self) -> Self {
+    //     UnitBlock {
+    //         x: self.x - 1,
+    //         y: self.y,
+    //     }
+    // }
 
     pub fn top_block(&self) -> Self {
         UnitBlock {
@@ -39,18 +39,18 @@ impl UnitBlock {
         }
     }
 
-    pub fn bot_block(&self) -> Self {
-        UnitBlock {
-            x: self.x,
-            y: self.y - 1,
-        }
-    }
+    // pub fn bot_block(&self) -> Self {
+    //     UnitBlock {
+    //         x: self.x,
+    //         y: self.y - 1,
+    //     }
+    // }
 
     pub fn central(&self) -> bool {
         ((self.x + self.y) % 2) == 0
     }
 
-    pub fn point_in_left_part(&self, p: &Vec2) -> bool {
+    pub fn point_in_left_part(&self, p: Vec2) -> bool {
         let (x, y) = self.to_unit_local(p).into();
         let abs_k = 3f32;
         let bc = 2f32;
@@ -62,8 +62,8 @@ impl UnitBlock {
         }
     }
 
-    fn to_unit_local(&self, p: &Vec2) -> Vec2 {
-        *p - self.origin()
+    fn to_unit_local(&self, p: Vec2) -> Vec2 {
+        p - self.origin()
     }
 }
 
@@ -120,16 +120,16 @@ mod tests {
     fn point_in_left_part() {
         let ub = init_test_unit_block();
         let p = Vec2::new(3.5f32, 2.8f32);
-        assert!(ub.point_in_left_part(&p));
+        assert!(ub.point_in_left_part(p));
 
         let p = Vec2::new(3.5f32, 2.2f32);
-        assert!(!ub.point_in_left_part(&p));
+        assert!(!ub.point_in_left_part(p));
 
         let nub = init_negative_test_unit_block();
         let p = Vec2::new(-2.5f32, -2.8f32);
-        assert!(nub.point_in_left_part(&p));
+        assert!(nub.point_in_left_part(p));
 
         let p = Vec2::new(-2.5f32, -2.2f32);
-        assert!(!nub.point_in_left_part(&p));
+        assert!(!nub.point_in_left_part(p));
     }
 }
