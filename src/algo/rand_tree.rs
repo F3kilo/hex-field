@@ -1,5 +1,5 @@
 use crate::hex::{Hex, NeighborIterator};
-use mapped_tree::MappedTree;
+pub use mapped_tree::MappedTree;
 use rand::prelude::*;
 use std::collections::HashSet;
 
