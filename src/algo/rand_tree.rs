@@ -164,7 +164,7 @@ mod tests {
 
     #[test]
     fn hex_count() {
-        for i in 50..1000 {
+        for i in 50..100 {
             let mut tree = default_tree(i as u64);
             tree.add_hexes(i);
             assert_eq!(tree.tree().len(), i);
