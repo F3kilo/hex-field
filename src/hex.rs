@@ -45,6 +45,7 @@ pub enum HexDir {
     LeftTop,
 }
 
+#[derive(Debug)]
 pub struct HexDirIter {
     counter: usize,
 }
@@ -59,7 +60,7 @@ impl Iterator for HexDirIter {
     type Item = HexDir;
 
     fn next(&mut self) -> Option<HexDir> {
-        match self.counter {
+        let result = match self.counter {
             0 => Some(HexDir::Top),
             1 => Some(HexDir::RightTop),
             2 => Some(HexDir::RightBot),
@@ -67,7 +68,9 @@ impl Iterator for HexDirIter {
             4 => Some(HexDir::LeftBot),
             5 => Some(HexDir::LeftTop),
             _ => None,
-        }
+        };
+        self.counter += 1;
+        result
     }
 }
 
@@ -77,6 +80,7 @@ pub struct Hex {
     size: Vec2,
 }
 
+#[derive(Debug)]
 pub struct NeighborIterator {
     hex: Hex,
     dir_iter: HexDirIter,

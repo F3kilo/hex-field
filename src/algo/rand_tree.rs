@@ -43,7 +43,7 @@ impl<R: Rng> RandHexTree<R> {
     }
 
     pub fn add_hex(&mut self) -> Hex {
-        let (hex, parent) = self.hex_to_process();
+        let (hex, parent) = self.rand_free_hex_to_process();
         self.insert_hex(hex.clone(), &parent);
         hex
     }
@@ -56,7 +56,31 @@ impl<R: Rng> RandHexTree<R> {
         hexes
     }
 
-    fn hex_to_process(&mut self) -> (Hex, Option<Hex>) {
+    fn rand_free_hex_to_process(&mut self) -> (Hex, ParentHex) {
+        let mut rand_hex_with_parent = self.rand_hex_to_process();
+        while !self.is_hex_free(&rand_hex_with_parent.0) {
+            rand_hex_with_parent = self.rand_hex_to_process();
+        }
+
+        rand_hex_with_parent
+    }
+
+    fn busy_neigbor(&self, hex: &Hex) -> Hex {
+        let busy_neigbor = hex.neighbors().filter(|n| self.is_hex_busy(&n)).next();
+        match busy_neigbor {
+            Some(n) => n,
+            None => panic!("no busy neighbor for forbidden hex"),
+        }
+    }
+
+    fn rand_hex_to_process(&mut self) -> (Hex, ParentHex) {
+        if self.to_process.is_empty() {
+            let forbidden_hex = self.forbidden.iter().next().unwrap().clone();
+            let busy_neighbor = self.busy_neigbor(&forbidden_hex);
+            self.forbidden.remove(&forbidden_hex);
+            return (forbidden_hex, Some(busy_neighbor));
+        }
+
         let rand_index = self.rng.gen_range(0, self.to_process.len());
         self.to_process.swap_remove(rand_index)
     }
@@ -82,13 +106,23 @@ impl<R: Rng> RandHexTree<R> {
         };
     }
 
+    fn is_hex_busy(&self, hex: &Hex) -> bool {
+        self.tree.contains(hex)
+    }
+
+    fn is_hex_forbidden(&self, hex: &Hex) -> bool {
+        self.forbidden.contains(hex)
+    }
+
+    fn is_hex_free(&self, hex: &Hex) -> bool {
+        !(self.is_hex_busy(hex) || self.is_hex_forbidden(hex))
+    }
+
     fn free_forb_neighbors(&mut self, neighbors: NeighborIterator) -> (Vec<Hex>, Vec<Hex>) {
         let mut free = Vec::with_capacity(6);
         let mut forb = Vec::with_capacity(6);
         for n in neighbors {
-            let is_busy = self.tree.contains(&n);
-            let is_forb = self.forbidden.contains(&n);
-            if is_busy || is_forb {
+            if !self.is_hex_free(&n) {
                 continue;
             }
 
@@ -99,7 +133,6 @@ impl<R: Rng> RandHexTree<R> {
                 free.push(n);
             }
         }
-
         (free, forb)
     }
 
@@ -131,7 +164,7 @@ mod tests {
 
     #[test]
     fn hex_count() {
-        for i in 1 as usize..2 as usize {
+        for i in 50..1000 {
             let mut tree = default_tree(i as u64);
             tree.add_hexes(i);
             assert_eq!(tree.tree().len(), i);
