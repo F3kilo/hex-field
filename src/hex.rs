@@ -24,7 +24,9 @@ impl Iterator for VertexDirIter {
     type Item = VertexDir;
 
     fn next(&mut self) -> Option<VertexDir> {
-        match self.counter {
+        let v = self.counter;
+        self.counter += 1;
+        match v {
             0 => Some(VertexDir::LeftTop),
             1 => Some(VertexDir::RightTop),
             2 => Some(VertexDir::Right),
